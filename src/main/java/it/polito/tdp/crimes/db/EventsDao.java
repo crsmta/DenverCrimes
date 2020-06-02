@@ -6,25 +6,28 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+
 import it.polito.tdp.crimes.model.Event;
 
 
 public class EventsDao {
 	
-	public List<Event> listAllEvents(){
+	public void listAllEvents(Map<Long, Event> idMap){
 		String sql = "SELECT * FROM events" ;
 		try {
 			Connection conn = DBConnect.getConnection() ;
 
 			PreparedStatement st = conn.prepareStatement(sql) ;
 			
-			List<Event> list = new ArrayList<>() ;
 			
 			ResultSet res = st.executeQuery() ;
 			
 			while(res.next()) {
 				try {
-					list.add(new Event(res.getLong("incident_id"),
+					Long key=res.getLong("incident_id");
+					if (!idMap.containsKey(key))
+					idMap.put(key,new Event(res.getLong("incident_id"),
 							res.getInt("offense_code"),
 							res.getInt("offense_code_extension"), 
 							res.getString("offense_type_id"), 
@@ -45,13 +48,69 @@ public class EventsDao {
 			}
 			
 			conn.close();
-			return list ;
-
+	
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			return null ;
 		}
 	}
 
+	
+	public void listAllEventsType(List<String> tipoCrimini){
+		String sql = "SELECT  DISTINCT offense_category_id FROM events GROUP BY offense_category_id;" ;
+		try {
+			Connection conn = DBConnect.getConnection() ;
+
+			PreparedStatement st = conn.prepareStatement(sql) ;
+			
+			
+			ResultSet res = st.executeQuery() ;
+			
+			while(res.next()) {
+				try {
+					tipoCrimini.add(res.getString(1));
+					
+				} catch (Throwable t) {
+					t.printStackTrace();
+		
+				}
+			}
+			
+			conn.close();
+	
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+
+	public void ListAllNeigh(List<String> quartieri) {
+		String sql = "SELECT  DISTINCT neighborhood_id FROM events GROUP BY neighborhood_id;" ;
+		try {
+			Connection conn = DBConnect.getConnection() ;
+
+			PreparedStatement st = conn.prepareStatement(sql) ;
+			
+			
+			ResultSet res = st.executeQuery() ;
+			
+			while(res.next()) {
+				try {
+					String quartiere =res.getString(1);
+					if (quartiere!=null || quartiere!="" )
+					quartieri.add(res.getString(1));
+					
+				} catch (Throwable t) {
+					t.printStackTrace();
+					
+				}
+			}
+			
+			conn.close();
+	
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+	}
 }
